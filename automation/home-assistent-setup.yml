@@ -1,0 +1,53 @@
+- hosts: all
+  become: true
+  tasks: 
+    - name: Add homeassistant user
+      ansible.builtin.user:
+        name: homeassistant
+        groups: dialout,gpio,i2c
+        append: yes
+    - name: add homeassistant directory
+      ansible.builtin.file:
+        path: /srv/homeassistant
+        state: directory
+        mode: '0755'
+    - name: change owner of created homeassistant directory
+      ansible.builtin.file:
+        path: /srv/homeassistant
+        owner: homeassistant
+        group: homeassistant
+    - name: Ansible check virtual python environment exists.
+      stat:
+        path: /srv/homeassistant/pyvenv.cfg
+      register: virtual_environment
+    - name: Create virtual python environment
+      become: yes
+      become_user: homeassistant
+      ansible.builtin.command: 
+        cmd: python3.9 -m venv .
+        chdir: /srv/homeassistant
+      when: not virtual_environment.stat.exists
+    - name: install required python package
+      become: yes
+      become_user: homeassistant
+      pip:
+        name: wheel
+        virtualenv: /srv/homeassistant
+    - name: install homeassistant
+      become: yes
+      become_user: homeassistant
+      pip:
+        name: homeassistant
+        virtualenv: /srv/homeassistant
+    - name: start homeassistant
+      become: yes
+      become_user: homeassistant
+      ansible.builtin.shell: 
+        cmd: source bin/activate && hass --daemon
+        chdir: /srv/homeassistant
+        executable: /bin/bash
+    - name: Home Assistant supervised is now installed
+      debug:
+        msg:
+          - "If Home Assistent is ready you can reach it here:"
+          - "http://{{ ansible_default_ipv4['address'] }}:8123"

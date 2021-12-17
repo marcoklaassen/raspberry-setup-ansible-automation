@@ -11,3 +11,7 @@
 ## Basic Setup
 
 run `ansible-playbook rpi-setup.yml -i hosts` in the `automation` folder to setup the pi user and ssh configuration
+
+## Install Home Assistant 
+
+run `ansible-playbook home-assistent-setup.yml -i hosts` in the `automation` folder to install and start Home Assistant Core directly to your Raspberry pi (https://www.home-assistant.io/installation/raspberrypi#install-home-assistant-core)
